@@ -1,0 +1,75 @@
+[
+    {
+        "id": "95f6e54ee538a3c7",
+        "type": "tab",
+        "label": "Simulation",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "47a697d595edd653",
+        "type": "inject",
+        "z": "95f6e54ee538a3c7",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "1",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 190,
+        "y": 140,
+        "wires": [
+            [
+                "3395d1c00e0ebfb6"
+            ]
+        ]
+    },
+    {
+        "id": "3395d1c00e0ebfb6",
+        "type": "function",
+        "z": "95f6e54ee538a3c7",
+        "name": "function 1",
+        "func": "\nmsg.payload = Math.sin(Date.now() / 5000);\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 360,
+        "y": 140,
+        "wires": [
+            [
+                "78928c6e43bf82ab"
+            ]
+        ]
+    },
+    {
+        "id": "78928c6e43bf82ab",
+        "type": "debug",
+        "z": "95f6e54ee538a3c7",
+        "name": "debug 1",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 520,
+        "y": 140,
+        "wires": []
+    }
+]
