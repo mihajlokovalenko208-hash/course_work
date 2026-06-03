@@ -318,7 +318,17 @@ graph TD
 
 
 
-<img width="1280" height="596" alt="image" src="https://github.com/user-attachments/assets/0d1005ce-c5f4-4504-95fa-8ec52c940ea2" />
+<img width="1477" height="614" alt="Знімок екрана 2026-06-03 144312" src="https://github.com/user-attachments/assets/a305ea4d-0361-48bf-8ffa-bb730978d5a1" />
+
+
+
+<img width="1891" height="831" alt="Знімок екрана 2026-06-03 144426" src="https://github.com/user-attachments/assets/7628dd07-412a-4029-8071-cf93fbbc3df8" />
+
+
+<img width="1896" height="848" alt="Знімок екрана 2026-06-03 144453" src="https://github.com/user-attachments/assets/93f5e4d1-06fa-4d4e-89e3-0b560686620e" />
+
+
+
 
 
 
