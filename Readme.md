@@ -125,7 +125,6 @@ graph TD
     Power --> Valve[Клапан води - Кран]
     Soil[Датчик вологості] --> ADC[перетворювач АЦП MCP3008]
     ADC --> RPi
-    DHT[Сервіс прогнозу погоди] --> RPi
     RPi --> Relay[Реле - Вимикач]
     Relay --> Valve
 ```
