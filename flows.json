@@ -1,75 +1,601 @@
 [
     {
-        "id": "95f6e54ee538a3c7",
-        "type": "tab",
-        "label": "Simulation",
-        "disabled": false,
-        "info": "",
-        "env": []
-    },
-    {
-        "id": "47a697d595edd653",
+        "id": "inject_sim",
         "type": "inject",
-        "z": "95f6e54ee538a3c7",
-        "name": "",
+        "z": "sim_tab",
+        "name": "Оновлення кожні 7 сек",
         "props": [
             {
                 "p": "payload"
-            },
-            {
-                "p": "topic",
-                "vt": "str"
             }
         ],
-        "repeat": "1",
+        "repeat": "7",
         "crontab": "",
-        "once": false,
-        "onceDelay": 0.1,
+        "once": true,
+        "onceDelay": "1",
         "topic": "",
         "payload": "",
         "payloadType": "date",
-        "x": 190,
-        "y": 140,
+        "x": 180,
+        "y": 120,
         "wires": [
             [
-                "3395d1c00e0ebfb6"
+                "fn_sensors"
             ]
         ]
     },
     {
-        "id": "3395d1c00e0ebfb6",
+        "id": "fn_sensors",
         "type": "function",
-        "z": "95f6e54ee538a3c7",
-        "name": "function 1",
-        "func": "\nmsg.payload = Math.sin(Date.now() / 5000);\nreturn msg;",
+        "z": "sim_tab",
+        "name": "Емуляція датчиків",
+        "func": "let soil = flow.get(\"soil\") || 50;\nlet temp = flow.get(\"temp\") || 22;\n\nsoil += (Math.random() - 0.5) * 15;\ntemp += (Math.random() - 0.5) * 1;\n\nsoil = Math.max(20, Math.min(90, soil));\ntemp = Math.max(15, Math.min(35, temp));\n\nflow.set(\"soil\", soil);\nflow.set(\"temp\", temp);\n\nmsg.payload = {\n    soil: Math.round(soil),\n    temperature: Math.round(temp)\n};\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 430,
+        "y": 120,
+        "wires": [
+            [
+                "fn_split"
+            ]
+        ]
+    },
+    {
+        "id": "fn_split",
+        "type": "function",
+        "z": "sim_tab",
+        "name": "Розділення телеметрії",
+        "func": "return [\n    { payload: msg.payload.soil },\n    { payload: msg.payload.temperature },\n    msg\n];",
+        "outputs": 3,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 700,
+        "y": 120,
+        "wires": [
+            [
+                "g_moisture",
+                "mqtt_m"
+            ],
+            [
+                "g_temp",
+                "mqtt_t"
+            ],
+            [
+                "auto_water",
+                "6c041a6bbe719517"
+            ]
+        ]
+    },
+    {
+        "id": "auto_water",
+        "type": "function",
+        "z": "sim_tab",
+        "name": "Автополив",
+        "func": "let soil = msg.payload.soil || msg.payload;\n\nif (soil < 30) {\n    msg.payload = \"🟢 Увімкнений\";\n} else {\n    msg.payload = \"🔴 Вимкнений\";\n}\n\nreturn msg;",
+        "outputs": 2,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 370,
+        "y": 260,
+        "wires": [
+            [
+                "mqtt_valve",
+                "g_valve"
+            ],
+            [
+                "debug_events"
+            ]
+        ]
+    },
+    {
+        "id": "mqtt_m",
+        "type": "mqtt out",
+        "z": "sim_tab",
+        "name": "MQTT Вологість",
+        "topic": "garden/вологість",
+        "qos": "1",
+        "retain": "true",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "mqtt_local",
+        "x": 1050,
+        "y": 60,
+        "wires": []
+    },
+    {
+        "id": "mqtt_t",
+        "type": "mqtt out",
+        "z": "sim_tab",
+        "name": "MQTT Температура",
+        "topic": "garden/температура",
+        "qos": "1",
+        "retain": "true",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "mqtt_local",
+        "x": 1060,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "mqtt_valve",
+        "type": "mqtt out",
+        "z": "sim_tab",
+        "name": "MQTT Клапан",
+        "topic": "garden/клапан",
+        "qos": "1",
+        "retain": "true",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "mqtt_local",
+        "x": 1040,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "g_moisture",
+        "type": "ui-gauge",
+        "z": "sim_tab",
+        "name": "Вологість",
+        "group": "2c19e3cd6a195eec",
+        "order": 1,
+        "value": "payload",
+        "valueType": "msg",
+        "width": "6",
+        "height": 3,
+        "gtype": "gauge-half",
+        "gstyle": "rounded",
+        "title": "Вологість ґрунту",
+        "alwaysShowTitle": false,
+        "units": "%",
+        "icon": "",
+        "prefix": "",
+        "suffix": "",
+        "segments": [
+            {
+                "from": "0",
+                "color": "#f80d18",
+                "text": "",
+                "textType": "label"
+            },
+            {
+                "from": "30",
+                "color": "#f2ed54",
+                "text": "",
+                "textType": "label"
+            },
+            {
+                "from": "60",
+                "color": "#00db49",
+                "text": "",
+                "textType": "label"
+            }
+        ],
+        "min": 0,
+        "max": "100",
+        "sizeThickness": "32",
+        "sizeGap": "4",
+        "sizeKeyThickness": "0",
+        "className": "",
+        "x": 1000,
+        "y": 320,
+        "wires": [
+            [
+                "ca4eae045073b0b4",
+                "a6bdda087f3650c7"
+            ]
+        ]
+    },
+    {
+        "id": "g_temp",
+        "type": "ui-gauge",
+        "z": "sim_tab",
+        "name": "Температура",
+        "group": "2c19e3cd6a195eec",
+        "order": 3,
+        "value": "payload",
+        "valueType": "msg",
+        "width": "6",
+        "height": 3,
+        "gtype": "gauge-half",
+        "title": "Температура",
+        "alwaysShowTitle": false,
+        "units": "°C",
+        "icon": "",
+        "prefix": "",
+        "suffix": "",
+        "segments": [
+            {
+                "from": "0",
+                "color": "#38d64b",
+                "text": "",
+                "textType": "label"
+            },
+            {
+                "from": "15",
+                "color": "#d8e524",
+                "text": "",
+                "textType": "label"
+            },
+            {
+                "from": "30",
+                "color": "#ed0c0c",
+                "text": "",
+                "textType": "label"
+            }
+        ],
+        "min": 0,
+        "max": 50,
+        "sizeThickness": "32",
+        "sizeGap": "4",
+        "sizeKeyThickness": "0",
+        "className": "",
+        "x": 980,
+        "y": 420,
+        "wires": [
+            [
+                "c50706a4b7cf7dbc"
+            ]
+        ],
+        "info": "msg.payload = msg.payload.temp + \" °C\";\r\nreturn msg;"
+    },
+    {
+        "id": "g_valve",
+        "type": "ui-text",
+        "z": "sim_tab",
+        "group": "2c19e3cd6a195eec",
+        "order": 2,
+        "width": "",
+        "height": "",
+        "name": "Стан клапана",
+        "label": "Клапан",
+        "format": "{{msg.payload}}",
+        "layout": "row-right",
+        "style": false,
+        "font": "",
+        "fontSize": "",
+        "color": "#000000",
+        "wrapText": false,
+        "className": "",
+        "value": "payload",
+        "valueType": "msg",
+        "x": 700,
+        "y": 260,
+        "wires": []
+    },
+    {
+        "id": "debug_events",
+        "type": "debug",
+        "z": "sim_tab",
+        "name": "Події",
+        "active": true,
+        "tosidebar": true,
+        "complete": "payload",
+        "x": 630,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "c50706a4b7cf7dbc",
+        "type": "ui-chart",
+        "z": "sim_tab",
+        "group": "2c19e3cd6a195eec",
+        "name": "Графік температури",
+        "label": "Температура",
+        "order": 4,
+        "chartType": "line",
+        "category": "Температура",
+        "categoryType": "str",
+        "xAxisLabel": "Last 1 hour",
+        "xAxisProperty": "X",
+        "xAxisPropertyType": "property",
+        "xAxisType": "time",
+        "xAxisFormat": "",
+        "xAxisFormatType": "auto",
+        "xmin": "",
+        "xmax": "",
+        "yAxisLabel": "0 - 50",
+        "yAxisProperty": "Y",
+        "yAxisPropertyType": "property",
+        "ymin": "0",
+        "ymax": "50",
+        "bins": 10,
+        "action": "append",
+        "stackSeries": false,
+        "pointShape": "circle",
+        "pointRadius": 4,
+        "showLegend": true,
+        "removeOlder": 1,
+        "removeOlderUnit": "3600",
+        "removeOlderPoints": "",
+        "colors": [
+            "#0095ff",
+            "#ff0000",
+            "#ff7f0e",
+            "#2ca02c",
+            "#a347e1",
+            "#d62728",
+            "#ff9896",
+            "#9467bd",
+            "#c5b0d5"
+        ],
+        "textColor": [
+            "#666666"
+        ],
+        "textColorDefault": true,
+        "gridColor": [
+            "#e5e5e5"
+        ],
+        "gridColorDefault": true,
+        "width": 6,
+        "height": 8,
+        "className": "",
+        "interpolation": "linear",
+        "x": 1240,
+        "y": 420,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "6c041a6bbe719517",
+        "type": "debug",
+        "z": "sim_tab",
+        "name": "debug 3",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1000,
+        "y": 260,
+        "wires": []
+    },
+    {
+        "id": "ca4eae045073b0b4",
+        "type": "function",
+        "z": "sim_tab",
+        "name": "function 4",
+        "func": "let sent = flow.get(\"alertSent\") || false;\n\nif (msg.payload < 30 && !sent) {\n\n    flow.set(\"alertSent\", true);\n\n    msg.payload = {\n        content: `🚨 Увага! Вологість ґрунту становить ${msg.payload}%`\n    };\n\n    return msg;\n}\n\nif (msg.payload >= 30) {\n    flow.set(\"alertSent\", false);\n}\n\nreturn null;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 360,
-        "y": 140,
+        "x": 1200,
+        "y": 240,
         "wires": [
             [
-                "78928c6e43bf82ab"
+                "30b8b21a1e218632"
             ]
         ]
     },
     {
-        "id": "78928c6e43bf82ab",
-        "type": "debug",
-        "z": "95f6e54ee538a3c7",
-        "name": "debug 1",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "false",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 520,
-        "y": 140,
-        "wires": []
+        "id": "30b8b21a1e218632",
+        "type": "http request",
+        "z": "sim_tab",
+        "name": "",
+        "method": "POST",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "https://discordapp.com/api/webhooks/1511854298139459664/_LduCbAVKZOmsAOry5iHj-SJ-T-92Qp_OUy9wrGBZOSX1uvqvS1hBCqhnJSe_yiMORAO",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 1350,
+        "y": 240,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "a6bdda087f3650c7",
+        "type": "ui-chart",
+        "z": "sim_tab",
+        "group": "2c19e3cd6a195eec",
+        "name": "Графік вологості",
+        "label": "",
+        "order": 5,
+        "chartType": "line",
+        "category": "Вологість",
+        "categoryType": "str",
+        "xAxisLabel": "",
+        "xAxisProperty": "X",
+        "xAxisPropertyType": "property",
+        "xAxisType": "time",
+        "xAxisFormat": "",
+        "xAxisFormatType": "auto",
+        "xmin": "",
+        "xmax": "",
+        "yAxisLabel": "",
+        "yAxisProperty": "Y",
+        "yAxisPropertyType": "property",
+        "ymin": "0",
+        "ymax": "100",
+        "bins": 10,
+        "action": "append",
+        "stackSeries": false,
+        "pointShape": "circle",
+        "pointRadius": 4,
+        "showLegend": true,
+        "removeOlder": 1,
+        "removeOlderUnit": "3600",
+        "removeOlderPoints": "",
+        "colors": [
+            "#0095ff",
+            "#ff0000",
+            "#ff7f0e",
+            "#2ca02c",
+            "#a347e1",
+            "#d62728",
+            "#ff9896",
+            "#9467bd",
+            "#c5b0d5"
+        ],
+        "textColor": [
+            "#666666"
+        ],
+        "textColorDefault": true,
+        "gridColor": [
+            "#e5e5e5"
+        ],
+        "gridColorDefault": true,
+        "width": 6,
+        "height": 8,
+        "className": "",
+        "interpolation": "linear",
+        "x": 1230,
+        "y": 340,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "mqtt_local",
+        "type": "mqtt-broker",
+        "name": "Mosquitto",
+        "broker": "test.mosquitto.org",
+        "port": "1883",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": 4,
+        "keepalive": 15,
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "2c19e3cd6a195eec",
+        "type": "ui-group",
+        "name": "Телеметрія",
+        "page": "9a40b35a65429d59",
+        "width": "8",
+        "height": 1,
+        "order": 1,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false",
+        "groupType": "default"
+    },
+    {
+        "id": "9a40b35a65429d59",
+        "type": "ui-page",
+        "name": "Page 4",
+        "ui": "ui_base_curs",
+        "path": "/page4",
+        "icon": "home",
+        "layout": "grid",
+        "theme": "65f27baaf9e34229",
+        "breakpoints": [
+            {
+                "name": "Default",
+                "px": "0",
+                "cols": "3"
+            },
+            {
+                "name": "Tablet",
+                "px": "576",
+                "cols": "6"
+            },
+            {
+                "name": "Small Desktop",
+                "px": "768",
+                "cols": "9"
+            },
+            {
+                "name": "Desktop",
+                "px": "1024",
+                "cols": "12"
+            }
+        ],
+        "order": 1,
+        "className": "",
+        "visible": true,
+        "disabled": false
+    },
+    {
+        "id": "ui_base_curs",
+        "type": "ui-base",
+        "name": "IoT Edge Dashboard",
+        "path": "/dashboard",
+        "includeClientData": true,
+        "acceptsClientConfig": [
+            "ui-control",
+            "ui-notification"
+        ],
+        "headerContent": "page",
+        "titleBarStyle": "default",
+        "showReconnectNotification": true,
+        "notificationDisplayTime": 5,
+        "showDisconnectNotification": true,
+        "allowInstall": true
+    },
+    {
+        "id": "65f27baaf9e34229",
+        "type": "ui-theme",
+        "name": "Theme Name",
+        "colors": {
+            "surface": "#ffffff",
+            "primary": "#0094ce",
+            "bgPage": "#eeeeee",
+            "groupBg": "#ffffff",
+            "groupOutline": "#cccccc"
+        },
+        "sizes": {
+            "density": "default",
+            "pagePadding": "12px",
+            "groupGap": "12px",
+            "groupBorderRadius": "4px",
+            "widgetGap": "12px"
+        }
+    },
+    {
+        "id": "35517b2002fb0e0e",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "@flowfuse/node-red-dashboard": "1.30.2"
+        }
     }
 ]
