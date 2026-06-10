@@ -1,5 +1,12 @@
 [
     {
+        "id": "sim_tab",
+        "type": "tab",
+        "label": "Smart Irrigation System",
+        "disabled": false,
+        "info": ""
+    },
+    {
         "id": "inject_sim",
         "type": "inject",
         "z": "sim_tab",
@@ -16,7 +23,7 @@
         "topic": "",
         "payload": "",
         "payloadType": "date",
-        "x": 180,
+        "x": 250,
         "y": 120,
         "wires": [
             [
@@ -36,7 +43,7 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 430,
+        "x": 470,
         "y": 120,
         "wires": [
             [
@@ -49,7 +56,7 @@
         "type": "function",
         "z": "sim_tab",
         "name": "Розділення телеметрії",
-        "func": "return [\n    { payload: msg.payload.soil },\n    { payload: msg.payload.temperature },\n    msg\n];",
+        "func": "return [\n    { payload: msg.payload.soil },\n    { payload: msg.payload.temperature },\n    { payload: msg.payload }\n];",
         "outputs": 3,
         "timeout": "",
         "noerr": 0,
@@ -69,7 +76,8 @@
             ],
             [
                 "auto_water",
-                "6c041a6bbe719517"
+                "6c041a6bbe719517",
+                "bf097d43585cab84"
             ]
         ]
     },
@@ -85,8 +93,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 370,
-        "y": 260,
+        "x": 1030,
+        "y": 120,
         "wires": [
             [
                 "mqtt_valve",
@@ -111,8 +119,8 @@
         "correl": "",
         "expiry": "",
         "broker": "mqtt_local",
-        "x": 1050,
-        "y": 60,
+        "x": 950,
+        "y": 20,
         "wires": []
     },
     {
@@ -129,8 +137,8 @@
         "correl": "",
         "expiry": "",
         "broker": "mqtt_local",
-        "x": 1060,
-        "y": 120,
+        "x": 980,
+        "y": 80,
         "wires": []
     },
     {
@@ -147,8 +155,8 @@
         "correl": "",
         "expiry": "",
         "broker": "mqtt_local",
-        "x": 1040,
-        "y": 180,
+        "x": 1320,
+        "y": 80,
         "wires": []
     },
     {
@@ -197,7 +205,7 @@
         "sizeKeyThickness": "0",
         "className": "",
         "x": 1000,
-        "y": 320,
+        "y": 220,
         "wires": [
             [
                 "ca4eae045073b0b4",
@@ -250,7 +258,7 @@
         "sizeKeyThickness": "0",
         "className": "",
         "x": 980,
-        "y": 420,
+        "y": 280,
         "wires": [
             [
                 "c50706a4b7cf7dbc"
@@ -278,8 +286,8 @@
         "className": "",
         "value": "payload",
         "valueType": "msg",
-        "x": 700,
-        "y": 260,
+        "x": 1320,
+        "y": 140,
         "wires": []
     },
     {
@@ -290,8 +298,8 @@
         "active": true,
         "tosidebar": true,
         "complete": "payload",
-        "x": 630,
-        "y": 320,
+        "x": 1310,
+        "y": 180,
         "wires": []
     },
     {
@@ -350,8 +358,8 @@
         "height": 8,
         "className": "",
         "interpolation": "linear",
-        "x": 1240,
-        "y": 420,
+        "x": 1220,
+        "y": 340,
         "wires": [
             []
         ]
@@ -369,8 +377,8 @@
         "targetType": "msg",
         "statusVal": "",
         "statusType": "auto",
-        "x": 1000,
-        "y": 260,
+        "x": 1020,
+        "y": 160,
         "wires": []
     },
     {
@@ -385,8 +393,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 1200,
-        "y": 240,
+        "x": 1180,
+        "y": 220,
         "wires": [
             [
                 "30b8b21a1e218632"
@@ -397,7 +405,7 @@
         "id": "30b8b21a1e218632",
         "type": "http request",
         "z": "sim_tab",
-        "name": "",
+        "name": "Бот діскорд",
         "method": "POST",
         "ret": "txt",
         "paytoqs": "ignore",
@@ -409,8 +417,8 @@
         "authType": "",
         "senderr": false,
         "headers": [],
-        "x": 1350,
-        "y": 240,
+        "x": 1330,
+        "y": 220,
         "wires": [
             []
         ]
@@ -472,7 +480,49 @@
         "className": "",
         "interpolation": "linear",
         "x": 1230,
-        "y": 340,
+        "y": 280,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "bf097d43585cab84",
+        "type": "function",
+        "z": "sim_tab",
+        "name": "function 1",
+        "func": "msg.headers = {\n    \"Content-Type\": \"application/json\"\n};\n\nmsg.payload = JSON.stringify({\n    soil: msg.payload.soil,\n    temperature: msg.payload.temperature\n});\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 580,
+        "y": 220,
+        "wires": [
+            [
+                "6dbb52cfbcb5af25"
+            ]
+        ]
+    },
+    {
+        "id": "6dbb52cfbcb5af25",
+        "type": "http request",
+        "z": "sim_tab",
+        "name": "Гугл таблиця",
+        "method": "POST",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "https://script.google.com/macros/s/AKfycbzPBc13BdCuKjzpqBVbjjkeqOXnA4ErsynLgdQjrJBiXmtqB_1LaJdTJS3iAEUgLF0JXw/exec",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 760,
+        "y": 220,
         "wires": [
             []
         ]
@@ -591,7 +641,7 @@
         }
     },
     {
-        "id": "35517b2002fb0e0e",
+        "id": "df03642971d2effb",
         "type": "global-config",
         "env": [],
         "modules": {
